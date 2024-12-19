@@ -5,27 +5,33 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Ticket, SellerProfile, AdminSettings
 from .forms import TicketForm, SellerRegistrationForm
-
-def home(request):
-    tickets = Ticket.objects.all()
-    return render(request, 'tickets/home.html', {'tickets': tickets})
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import AuthenticationForm
-from .models import Ticket, SellerProfile, AdminSettings
-from .forms import TicketForm, SellerRegistrationForm
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 
 def home(request):
     tickets = Ticket.objects.all()
     admin_settings = AdminSettings.objects.first()  # Fetch admin settings (assuming only one entry)
     admin_whatsapp_number = admin_settings.admin_whatsapp_number if admin_settings else None
-
+    
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        # Use fuzzywuzzy to perform the search
+        ticket_names = [ticket.event_name for ticket in tickets]
+        
+        # Extract top 10 matched ticket names based on fuzzy search
+        matched_tickets = process.extract(search_query, ticket_names, limit=10)
+        
+        # Filter tickets based on the matched names with a minimum score threshold (e.g., 70)
+        matched_ticket_names = [match[0] for match in matched_tickets if match[1] >= 70]
+        
+        # Filter tickets based on the matched names (case-insensitive)
+        tickets = [ticket for ticket in tickets if ticket.event_name.lower() in [name.lower() for name in matched_ticket_names]]
+    
     return render(request, 'tickets/home.html', {
         'tickets': tickets,
         'admin_whatsapp_number': admin_whatsapp_number,
+        'search_query': search_query
     })
 
 
@@ -134,3 +140,5 @@ def seller_login(request):
 
 def about(request):
     return render(request, 'tickets/about.html')
+
+

@@ -96,18 +96,26 @@
         </div>
     {% endif %}
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Search Form -->
     <div class="hero-section">
         <div class="hero-text">
             <h1>Discover Amazing Events and Tickets</h1>
             <p>Find tickets for concerts, plays, sports, and more.</p>
-            <a href="{% url 'register_seller' %}" class="btn btn-primary">Get Started</a>
+            <!-- Search Form -->
+            <form method="get" action="{% url 'home' %}" class="d-flex mt-3">
+                <input type="text" name="search" class="form-control" placeholder="Search for tickets..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-primary ms-2">Search</button>
+            </form>
+            <a href="{% url 'register_seller' %}" class="btn btn-primary mt-3">Get Started</a>
         </div>
     </div>
 
     <!-- Ticket Listings Section -->
     <div class="container mt-5">
         <h2 class="text-center mb-4">List of Tickets</h2>
+        {% if search_query %}
+            <h4>Search Results for: "{{ search_query }}"</h4>
+        {% endif %}
         <div class="row">
             {% for ticket in tickets %}
                 <div class="col-md-4">
