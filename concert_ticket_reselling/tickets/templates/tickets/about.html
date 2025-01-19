@@ -41,6 +41,7 @@
             font-weight: bold;
             font-size: 1.5rem;
         }
+
         .creator-images img {
             width: 100px;
             height: 100px;
@@ -58,10 +59,13 @@
         .creator-names {
             font-weight: bold;
             margin-top: 10px;
+    
         }
     </style>
 </head>
 <body>
+
+    {% load static %}  <!-- Add this line to load static files -->
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -84,10 +88,10 @@
         <div class="mt-5">
             <h4 class="text-center mb-3">Why Choose Us?</h4>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item">✔️ Easy-to-use platform for ticket reselling.</li>
-                <li class="list-group-item">✔️ Verified users ensure a safe experience.</li>
-                <li class="list-group-item">✔️ Streamlined process for faster transactions.</li>
-                <li class="list-group-item">✔️ Tailored exclusively for BITS students.</li>
+                <li class="list-group-item">✅ Easy-to-use platform for ticket reselling.</li>
+                <li class="list-group-item">✅ Verified users ensure a safe experience.</li>
+                <li class="list-group-item">✅ Streamlined process for faster transactions.</li>
+                <li class="list-group-item">✅ Tailored exclusively for BITS students.</li>
             </ul>
         </div>
 
@@ -96,12 +100,14 @@
             <h4 class="text-center mb-3">Meet the Creators</h4>
             <div class="creator-images d-flex justify-content-center">
                 <div class="text-center">
-                    <img src="https://via.placeholder.com/100" alt="Manas">
-                    <p class="creator-names">Manas</p>
+                    <img src="{% static 'tickets/images/re.png' %}" alt="Anant">
+                    <p>Manas</p>
+                    
                 </div>
                 <div class="text-center">
-                    <img src="https://via.placeholder.com/100" alt="Anant">
-                    <p class="creator-names">Anant</p>
+                    <img src="{% static 'tickets/images/image.png' %}" alt="Anant">  <!-- Use static path -->
+                    <p>Anant </p>
+                    
                 </div>
             </div>
         </div>

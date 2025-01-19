@@ -1,5 +1,7 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -46,7 +48,22 @@ def home(request):
     })
 """
 
-# Seller Registration View
+@login_required(login_url='login_and_redirect_to_tickets')
+def update_ticket_status(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id, seller=request.user)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in ['sold', 'unsold']:
+            ticket.status = new_status
+            ticket.save()
+            messages.success(request, 'Ticket status updated successfully!')
+    return HttpResponseRedirect(reverse('my_tickets'))
+
+@login_required(login_url='login_and_redirect_to_tickets')
+def my_tickets(request):
+    user_tickets = Ticket.objects.filter(seller=request.user)
+    return render(request, 'tickets/my_tickets.html', {'tickets': user_tickets})
+
 def register_seller(request):
     if request.method == 'POST':
         form = SellerRegistrationForm(request.POST)
@@ -61,7 +78,37 @@ def register_seller(request):
         form = SellerRegistrationForm()
     return render(request, 'tickets/register_seller.html', {'form': form})
 
-@login_required(login_url='seller_login')
+def login_and_redirect_to_create_ticket(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Login successful!')
+                return redirect('create_ticket')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'tickets/login_create_ticket.html', {'form': form})
+
+def login_and_redirect_to_my_tickets(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Login successful!')
+                return redirect('my_tickets')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'tickets/login_my_tickets.html', {'form': form})
+
+@login_required(login_url='login_and_redirect_to_create_ticket')
 def create_ticket(request):
     if request.method == 'POST':
         form = TicketForm(request.POST)
@@ -74,69 +121,6 @@ def create_ticket(request):
     else:
         form = TicketForm()
     return render(request, 'tickets/create_ticket.html', {'form': form})
-
-# View for seller login
-def seller_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('create_ticket')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'tickets/login.html', {'form': form})
-
-def about(request):
-    return render(request, 'tickets/about.html')
-
-
-# Seller Registration View
-def register_seller(request):
-    if request.method == 'POST':
-        form = SellerRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            contact_info = form.cleaned_data['contact_info']
-            SellerProfile.objects.create(user=user, contact_info=contact_info)
-            login(request, user)
-            messages.success(request, 'You have successfully registered!')
-            return redirect('home')
-    else:
-        form = SellerRegistrationForm()
-    return render(request, 'tickets/register_seller.html', {'form': form})
-
-@login_required(login_url='seller_login')
-def create_ticket(request):
-    if request.method == 'POST':
-        form = TicketForm(request.POST)
-        if form.is_valid():
-            ticket = form.save(commit=False)
-            ticket.seller = request.user
-            ticket.save()
-            messages.success(request, 'Ticket created successfully!')
-            return redirect('home')
-    else:
-        form = TicketForm()
-    return render(request, 'tickets/create_ticket.html', {'form': form})
-
-# View for seller login
-def seller_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('create_ticket')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'tickets/login.html', {'form': form})
 
 def about(request):
     return render(request, 'tickets/about.html')
