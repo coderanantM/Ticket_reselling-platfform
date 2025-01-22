@@ -104,16 +104,6 @@
         </div>
     </nav>
 
-    {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" role="alert">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
     <!-- Hero Section with Search Form -->
     <div class="hero-section">
         <div class="hero-text">
@@ -128,7 +118,38 @@
         </div>
     </div>
 
-    <!-- Ticket Listings Section -->
+    <div class="container mt-4">
+        <h1 class="text-center">Tickets</h1>
+
+        <!-- Status Filter Form -->
+        <form method="get" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Filter by Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="sold" {% if status_filter_form.initial.status == 'sold' %}selected{% endif %}>Sold</option>
+                        <option value="unsold" {% if status_filter_form.initial.status == 'unsold' %}selected{% endif %}>Unsold</option>
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Tickets Section -->
     <div class="container mt-5">
         <h2 class="text-center mb-4">List of Tickets</h2>
         {% if search_query %}
@@ -146,7 +167,8 @@
                                 Venue: {{ ticket.venue }}<br>
                                 Price: ₹{{ ticket.price }}<br>
                                 Quantity: {{ ticket.quantity }}<br>
-                                Category (Vip/standing): {{ ticket.category }} 
+                                Category (Vip/standing): {{ ticket.category }} <br>
+                                Status: {{ ticket.status }}
                             </p>
                             {% if admin_whatsapp_number %}
                                 <a href="https://wa.me/{{ admin_whatsapp_number }}?text=Hi!%20I%20am%20interested%20in%20the%20ticket%20for%20{{ ticket.event_name }}%20at%20{{ ticket.venue }}.%20Can%20you%20please%20share%20the%20seller's%20contact%20details%20with%20me?" class="btn btn-primary w-100" target="_blank">

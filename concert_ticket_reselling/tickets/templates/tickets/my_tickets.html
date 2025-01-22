@@ -60,6 +60,10 @@
                                 </select>
                                 <button type="submit" class="btn btn-primary mt-2">Update</button>
                             </form>
+                            <form method="post" action="{% url 'delete_ticket' ticket.id %}" class="mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
                         </td>
                     </tr>
                     {% empty %}

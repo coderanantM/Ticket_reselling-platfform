@@ -1,3 +1,4 @@
+from django import forms
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -10,13 +11,17 @@ from .forms import TicketForm, SellerRegistrationForm
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
+class StatusFilterForm(forms.Form):
+    status = forms.ChoiceField(choices=[('sold', 'Sold'), ('unsold', 'Unsold')], required=False)
+
 def home(request):
     tickets = Ticket.objects.all()
     admin_settings = AdminSettings.objects.first()  # Fetch admin settings (assuming only one entry)
     admin_whatsapp_number = admin_settings.admin_whatsapp_number if admin_settings else None
     
     search_query = request.GET.get('search', '')
-    
+    status_filter = request.GET.get('status', '')
+
     if search_query:
         # Use fuzzywuzzy to perform the search
         ticket_names = [ticket.event_name for ticket in tickets]
@@ -30,12 +35,17 @@ def home(request):
         # Filter tickets based on the matched names (case-insensitive)
         tickets = [ticket for ticket in tickets if ticket.event_name.lower() in [name.lower() for name in matched_ticket_names]]
     
+    if status_filter:
+        tickets = tickets.filter(status=status_filter)
+
+    status_filter_form = StatusFilterForm(initial={'status': status_filter})
+
     return render(request, 'tickets/home.html', {
         'tickets': tickets,
         'admin_whatsapp_number': admin_whatsapp_number,
-        'search_query': search_query
+        'search_query': search_query,
+        'status_filter_form': status_filter_form,
     })
-
 
 """def ticket_detail(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id)
@@ -52,12 +62,19 @@ def home(request):
 def update_ticket_status(request, ticket_id):
     ticket = get_object_or_404(Ticket, id=ticket_id, seller=request.user)
     if request.method == 'POST':
-        new_status = request.POST.get('status')
-        if new_status in ['sold', 'unsold']:
-            ticket.status = new_status
-            ticket.save()
-            messages.success(request, 'Ticket status updated successfully!')
-    return HttpResponseRedirect(reverse('my_tickets'))
+        status = request.POST.get('status')
+        ticket.status = status
+        ticket.save()
+        messages.success(request, 'Ticket status updated successfully!')
+    return redirect('home')
+
+@login_required(login_url='login_and_redirect_to_tickets')
+def delete_ticket(request, ticket_id):
+    ticket = get_object_or_404(Ticket, id=ticket_id, seller=request.user)
+    if request.method == 'POST':
+        ticket.delete()
+        messages.success(request, 'Ticket deleted successfully!')
+    return redirect('my_tickets')
 
 @login_required(login_url='login_and_redirect_to_tickets')
 def my_tickets(request):
